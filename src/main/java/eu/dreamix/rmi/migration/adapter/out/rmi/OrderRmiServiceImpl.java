@@ -6,12 +6,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.rmi.RemoteException;
 
+/**
+ * Implementation of the legacy OrderRmiService interface.
+ * This is a temporary bridge implementation during migration.
+ * Once the migration to REST is complete, this will be removed.
+ */
 @Service
 public class OrderRmiServiceImpl implements OrderRmiService {
     
     private static final Logger logger = LoggerFactory.getLogger(OrderRmiServiceImpl.class);
     
-
+    /**
+     * {@inheritDoc}
+     * 
+     * @deprecated as per the interface
+     */
+    @Override
+    @Deprecated(forRemoval = true, since = "2025-06")
     public Order findOrderById(Integer id) throws RemoteException {
         logger.info("RMI Service: Finding order with ID: {}", id);
         

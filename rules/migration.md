@@ -1,0 +1,15 @@
+## Project Rules
+
+| #  | Area | Rule |
+|----|------|------|
+| **1** | **Code style** | Follow **Google Java Style** via `google-java-format`; enforced by the Spotless Gradle/Maven plugin (format-on-save and CI gate). |
+| **2** | **Language level** | Compile for **Java 21 LTS**. Prefer records, sealed classes, and avoid reflection hacks. |
+| **3** | **Project layout** | Layered package structure: <br>`config` • `domain` • `usecase` • `adapter.in.(rest\|web)` • `adapter.out.(rmi\|storage)` |
+| **4** | **SOLID / DRY** | No business logic in controllers or entities. All public classes should expose an interface unless they are immutable DTOs. |
+| **5** | **Null-safety** | Use `@NonNull` / `@Nullable`; enable SpotBugs **NP\_*** checks. |
+| **6** | **Tests** | Test-Driven by default. <br>• **Unit**: JUnit 5 + Mockito – ≥ 80 % line coverage gate. <br>• **Integration**: Spring Boot test slices, Testcontainers for infra. <br>• **Contract**: Spring Cloud Contract for outward REST APIs. |
+| **7** | **README discipline** | Any PR that changes behaviour **must** update the README. CI fails if the README timestamp predates the newest commit on the branch. |
+| **8** | **Branch & PR etiquette** | Conventional Commits (`feat: …`, `fix: …`). PR template requires: Problem → Solution → Checklist (README ✔, tests ✔). |
+| **9** | **Dependencies** | Use Spring-Boot starters where possible; pin versions in `dependencyManagement`; deny-list `commons-logging` and `log4j`. Run OWASP Dependency-Check in CI. |
+| **10** | **Static analysis** | SpotBugs, PMD and Error-Prone run in CI; **no new HIGH-severity** issues allowed per PR. |
+| **11** | **RMI → REST mapping** | **11-a Naming convention**: `findOrderById` ⇒ **`GET /api/orders/{id}`** (pattern: `<verb><Domain>By<Qualifier>` → `/<domain-plural>/{qualifier}`).<br><br>**11-b Controller contract**: annotate class with `@RestController` + `@RequestMapping("/api")`; each method must ① return a DTO (never entity), ② declare explicit status codes (`@ResponseStatus`), ③ validate all inputs (`@Positive`, `@Size`, …).<br><br>**11-c Strangler bridge**: keep legacy RMI stub in `adapter.out.rmi`. New `usecase` calls it until feature flag **`useRest_<domain>`** is fully enabled. Mark legacy RMI method `@Deprecated(forRemoval = true)` once the REST endpoint meets latency/error-rate targets for 7 days.<br><br>**11-d Parity tests**: for every migrated call, add a Cucumber scenario “RMI vs REST must return equal payload”. Implement with Testcontainers: spin one Spring context exposing both endpoints; compare JSON bodies (order-agnostic).<br><br>**11-e Mapping register**: maintain `docs/migration_map.md` containing `RMI method ↔ REST route ↔ Flag`. CI fails if any `@RestController` method lacks an entry.<br><br>**11-f Task Master guardrails**: always run `/taskmaster parse-feature … --migration=rmi-to-rest`. The plug-in automatically…<br>&nbsp;• adds sub-task “Update mapping register”, and<br>&nbsp;• scaffolds the correct `@GetMapping` / `@PostMapping` skeleton that respects rule 11-a. |
