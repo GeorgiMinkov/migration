@@ -19,12 +19,12 @@ src/
 
 ---
 
-## 2 · Demo Flow (no Task Master)
+## 2 · Demo Flow
 
 | Phase | What you do | Tool / prompt | Result |
 |-------|-------------|---------------|--------|
 | **1. PRD generation** | Ask ChatGPT to draft the migration PRD. | **Prompt below** | `prd/order-migration.md` |
-| **2. Task breakdown** | Feed the PRD to an **SWE LLM** (e.g. `gpt-4o-swe`) to create check‑box tasks. | **Prompt below** | `features/001_order_migration_tasks.md` |
+| **2. Task breakdown** | Feed the PRD to an **SWE LLM** (e.g. `gpt-4o-swe`) to create check‑box tasks. | **Prompt below** | `features/001-order-migration.md` |
 | **3. Implementation** | Use Windsurf chat to scaffold code & tests, run Maven gates, and tick boxes as you go. | **Prompt cheatsheet below** | Production‑ready code + green CI |
 
 ### 2.1 ChatGPT prompt (PRD)
