@@ -19,12 +19,12 @@ src/
 
 ---
 
-## 2 · Demo Flow
+## 2 · Demo Flow (no Task Master)
 
 | Phase | What you do | Tool / prompt | Result |
 |-------|-------------|---------------|--------|
 | **1. PRD generation** | Ask ChatGPT to draft the migration PRD. | **Prompt below** | `prd/order-migration.md` |
-| **2. Task breakdown** | Feed the PRD to an **SWE LLM** (e.g. `gpt-4o-swe`) to create check‑box tasks. | **Prompt below** | `features/001-order-migration.md` |
+| **2. Task breakdown** | Feed the PRD to an **SWE LLM** (e.g. `gpt-4o-swe`) to create check‑box tasks. | **Prompt below** | `features/001_order_migration_tasks.md` |
 | **3. Implementation** | Use Windsurf chat to scaffold code & tests, run Maven gates, and tick boxes as you go. | **Prompt cheatsheet below** | Production‑ready code + green CI |
 
 ### 2.1 ChatGPT prompt (PRD)
@@ -66,25 +66,81 @@ For every step include an empty checkbox “- [ ] ...”.
 
 ---
 
-## 3 · Running the Demo
+## 3 · Implementation Spotlights with AI
 
-```bash
-# ① generate PRD (ChatGPT) and save to prd/
-# ② generate tasks (SWE model) and save to features/
-# ② execute tasks (Claude 3.7) and save to src/
+Leveraging AI accelerated the RMI-to-REST migration while ensuring adherence to company standards. Here are concrete examples of how AI-assisted development improved quality and productivity:
 
-# ③ implement:
-./mvnw spotless:apply    # auto‑format
-./mvnw test              # unit tests
-./mvnw verify            # integration + quality gates
+### Layered Architecture Compliance
+
+AI automatically implemented the proper layered architecture pattern, following company best practices:
+
+```java
+// Layer: adapter.in.rest - Clean separation of REST adapter from domain logic
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    private final OrderService orderService;
+    // Constructor injection and REST mapping with proper validation
+}
+
+// Layer: usecase - Feature flag to control gradual migration
+public class OrderService {
+    @Value("${feature.flag.useRest_order:false}")
+    private boolean useRestOrder;
+    // Service orchestration with metrics collection
+}
+
+// Layer: adapter.out - Encapsulates legacy RMI implementation
+@Service
+public class OrderRmiServiceImpl implements OrderRmiService {
+    // Legacy RMI implementation with proper deprecation
+}
+```
+
+### Testing Standards & Best Practices
+
+AI automatically incorporated company testing standards:
+
+1. **Unit Tests**: Controller tests with mocked dependencies using Mockito
+2. **Parity Testing**: Cucumber-based parity tests comparing RMI vs REST responses
+3. **Spring Configuration**: Proper test context configuration with `@CucumberContextConfiguration`
+
+```java
+// Example: Cucumber Spring configuration for proper context setup
+@CucumberContextConfiguration
+@SpringBootTest(
+    classes = MigrationApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
+public class CucumberSpringConfiguration {}
+```
+
+### Observability & Migration Safeguards
+
+AI implemented extensive monitoring and feature flags without prompting:
+
+```java
+// Metrics collection for tracking migration progress
+MeterRegistry registry;
+Counter rmiUsageCounter = Counter.builder("rmi.usage.count")
+    .description("Count of calls to legacy RMI method")
+    .register(registry);
+
+// Feature flag implementation for gradual rollout
+if (!useRestOrder) {
+    log.info("Using legacy RMI implementation");
+    rmiUsageCounter.increment();
+    return orderRmiService.findOrderById(id);
+} else {
+    log.info("Using new Repository implementation");
+    return orderRepository.findById(id);
+}
 ```
 
 ### Task Tracking
 
 Open **features/001-order-migration.md** in Windsurf's Markdown preview to monitor progress.  
-Windsurf will automatically tick each task (☑️) as the corresponding code implementation or test passes.
-
-Each completed task represents a verified milestone in the migration process from RMI to REST.
+Windsurf automatically ticks each task (☑️) as the corresponding code implementation or test passes, enabling real-time tracking of migration progress.
 
 ---
 
